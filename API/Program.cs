@@ -1,6 +1,7 @@
 using API.Middleware;
 using Application.Activities;
 using Application.Activities.Queries;
+using Application.Activities.Validators;
 using Application.Core;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -10,18 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-// builder.Services.AddDbContext<AppDbContext>(opt =>
-// {
-//     opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
-// });
 builder.Services.AddDbContext<AppDbContext>(opt =>
 {
-    opt.UseMySql(
-        builder.Configuration.GetConnectionString("MySqlString"),
-        new MySqlServerVersion(new Version(8, 0, 36)) // Βάλε τη δική σου έκδοση MySQL
-    );
+    opt.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-
 builder.Services.AddCors();
 builder.Services.AddMediatR(x => {
     x.RegisterServicesFromAssemblyContaining<GetActivityList.Handler>();
@@ -34,6 +27,7 @@ builder.Services.AddTransient<ExceptionMiddleware>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:3000", "https://localhost:3000"));
 
 app.MapControllers();
